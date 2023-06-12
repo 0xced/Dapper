@@ -5,13 +5,21 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("XmlTests")]
-    public sealed class SystemSqlClientXmlTests : XmlTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientXmlTests : XmlTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientXmlTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("XmlTests")]
-    public sealed class MicrosoftSqlClientXmlTests : XmlTests<MicrosoftSqlClientProvider> { }
-#endif
-    public abstract class XmlTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public sealed class MicrosoftSqlClientXmlTests : XmlTests<MicrosoftSqlClientProvider>
     {
+        public MicrosoftSqlClientXmlTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
+#endif
+    public abstract class XmlTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
+    {
+        protected XmlTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void CommonXmlTypesSupported()
         {

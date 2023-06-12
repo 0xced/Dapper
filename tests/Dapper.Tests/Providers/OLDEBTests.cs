@@ -16,6 +16,8 @@ namespace Dapper.Tests
 
     public class OLDEBTests : TestBase<OLEDBProvider>
     {
+        public OLDEBTests(OLEDBProvider provider) : base(provider) { }
+
         public OleDbConnection GetOleDbConnection() => (OleDbConnection) Provider.GetOpenConnection();
 
         // see https://stackoverflow.com/q/18847510/23354

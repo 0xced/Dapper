@@ -7,13 +7,21 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("QueryMultipleTests")]
-    public sealed class SystemSqlClientQueryMultipleTests : QueryMultipleTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientQueryMultipleTests : QueryMultipleTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientQueryMultipleTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("QueryMultipleTests")]
-    public sealed class MicrosoftSqlClientQueryMultipleTests : QueryMultipleTests<MicrosoftSqlClientProvider> { }
-#endif
-    public abstract class QueryMultipleTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public sealed class MicrosoftSqlClientQueryMultipleTests : QueryMultipleTests<MicrosoftSqlClientProvider>
     {
+        public MicrosoftSqlClientQueryMultipleTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
+#endif
+    public abstract class QueryMultipleTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
+    {
+        protected QueryMultipleTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void TestQueryMultipleBuffered()
         {

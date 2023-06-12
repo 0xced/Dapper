@@ -12,29 +12,37 @@ using Xunit.Abstractions;
 namespace Dapper.Tests
 {
     [Collection(NonParallelDefinition.Name)]
-    public sealed class SystemSqlClientAsyncTests : AsyncTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientAsyncTests : AsyncTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientAsyncTests(SystemSqlClientProvider provider, DbConnection marsConnection) : base(provider, marsConnection) { }
+    }
 #if MSSQLCLIENT
     [Collection(NonParallelDefinition.Name)]
-    public sealed class MicrosoftSqlClientAsyncTests : AsyncTests<MicrosoftSqlClientProvider> { }
+    public sealed class MicrosoftSqlClientAsyncTests : AsyncTests<MicrosoftSqlClientProvider>
+    {
+        public MicrosoftSqlClientAsyncTests(MicrosoftSqlClientProvider provider, DbConnection marsConnection) : base(provider, marsConnection) { }
+    }
 #endif
 
     [Collection(NonParallelDefinition.Name)]
     public sealed class SystemSqlClientAsyncQueryCacheTests : AsyncQueryCacheTests<SystemSqlClientProvider>
     {
-        public SystemSqlClientAsyncQueryCacheTests(ITestOutputHelper log) : base(log) { }
+        public SystemSqlClientAsyncQueryCacheTests(SystemSqlClientProvider provider, ITestOutputHelper log) : base(provider, log) { }
     }
 #if MSSQLCLIENT
     [Collection(NonParallelDefinition.Name)]
     public sealed class MicrosoftSqlClientAsyncQueryCacheTests : AsyncQueryCacheTests<MicrosoftSqlClientProvider>
     {
-        public MicrosoftSqlClientAsyncQueryCacheTests(ITestOutputHelper log) : base(log) { }
+        public MicrosoftSqlClientAsyncQueryCacheTests(MicrosoftSqlClientProvider provider, ITestOutputHelper log) : base(provider, log) { }
     }
 #endif
 
 
-    public abstract class AsyncTests<TProvider> : TestBase<TProvider> where TProvider : SqlServerDatabaseProvider
+    public abstract class AsyncTests<TProvider> : TestBase<TProvider> where TProvider : SqlServerDatabaseProvider, new()
     {
         private DbConnection _marsConnection;
+
+        protected AsyncTests(TProvider provider, DbConnection marsConnection) : base(provider) => _marsConnection = marsConnection;
 
         private DbConnection MarsConnection => _marsConnection ??= Provider.GetOpenConnection(true);
 
@@ -926,10 +934,10 @@ SET @AddressPersonId = @PersonId", p).ConfigureAwait(false))
     }
 
     [Collection(NonParallelDefinition.Name)]
-    public abstract class AsyncQueryCacheTests<TProvider> : TestBase<TProvider> where TProvider : SqlServerDatabaseProvider
+    public abstract class AsyncQueryCacheTests<TProvider> : TestBase<TProvider> where TProvider : SqlServerDatabaseProvider, new()
     {
         private readonly ITestOutputHelper _log;
-        public AsyncQueryCacheTests(ITestOutputHelper log) => _log = log;
+        protected AsyncQueryCacheTests(TProvider provider, ITestOutputHelper log) : base(provider) => _log = log;
         private DbConnection _marsConnection;
         private DbConnection MarsConnection => _marsConnection ??= Provider.GetOpenConnection(true);
 

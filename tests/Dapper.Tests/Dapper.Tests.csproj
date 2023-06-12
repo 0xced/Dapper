@@ -10,8 +10,14 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net462' OR '$(TargetFramework)' == 'net472'">
     <DefineConstants>$(DefineConstants);ENTITY_FRAMEWORK;LINQ2SQL;OLEDB</DefineConstants>
   </PropertyGroup>
-  
+
   <ItemGroup>
+<!--    <PackageReference Include="Testcontainers.MsSql" Version="3.2.0" />-->
+<!--    <PackageReference Include="Testcontainers.MySql" Version="3.2.0" />-->
+<!--    <PackageReference Include="Testcontainers.PostgreSql" Version="3.2.0" />-->
+    <ProjectReference Include="../../../testcontainers-dotnet/src/Testcontainers.MsSql/Testcontainers.MsSql.csproj" />
+    <ProjectReference Include="../../../testcontainers-dotnet/src/Testcontainers.MySql/Testcontainers.MySql.csproj" />
+    <ProjectReference Include="../../../testcontainers-dotnet/src/Testcontainers.PostgreSql/Testcontainers.PostgreSql.csproj" />
     <ProjectReference Include="../../Dapper.ProviderTools/Dapper.ProviderTools.csproj" />
     <ProjectReference Include="../../Dapper.SqlBuilder/Dapper.SqlBuilder.csproj" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="7.5.0" />

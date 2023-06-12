@@ -13,6 +13,8 @@ namespace Dapper.Tests.Providers
     }
     public class FirebirdTests : TestBase<FirebirdProvider>
     {
+        public FirebirdTests(FirebirdProvider provider) : base(provider) { }
+
         private FbConnection GetOpenFirebirdConnection() => (FbConnection)Provider.GetOpenConnection();
 
         [Fact(Skip = "Bug in Firebird; a PR to fix it has been submitted")]

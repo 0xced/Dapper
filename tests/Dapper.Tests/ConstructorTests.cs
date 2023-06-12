@@ -6,14 +6,22 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("ConstructorTests")]
-    public sealed class SystemSqlClientConstructorTests : ConstructorTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientConstructorTests : ConstructorTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientConstructorTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("ConstructorTests")]
-    public sealed class MicrosoftSqlClientConstructorTests : ConstructorTests<MicrosoftSqlClientProvider> { }
+    public sealed class MicrosoftSqlClientConstructorTests : ConstructorTests<MicrosoftSqlClientProvider>
+    {
+        public MicrosoftSqlClientConstructorTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
 #endif
 
-    public abstract class ConstructorTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public abstract class ConstructorTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
     {
+        protected ConstructorTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void TestAbstractInheritance()
         {

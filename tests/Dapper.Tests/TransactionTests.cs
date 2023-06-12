@@ -8,13 +8,21 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("TransactionTests")]
-    public sealed class SystemSqlClientTransactionTests : TransactionTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientTransactionTests : TransactionTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientTransactionTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("TransactionTests")]
-    public sealed class MicrosoftSqlClientTransactionTests : TransactionTests<MicrosoftSqlClientProvider> { }
-#endif
-    public abstract class TransactionTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public sealed class MicrosoftSqlClientTransactionTests : TransactionTests<MicrosoftSqlClientProvider>
     {
+        public MicrosoftSqlClientTransactionTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
+#endif
+    public abstract class TransactionTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
+    {
+        protected TransactionTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void TestTransactionCommit()
         {

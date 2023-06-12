@@ -6,13 +6,21 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("DecimalTests")]
-    public sealed class SystemSqlClientDecimalTests : DecimalTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientDecimalTests : DecimalTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientDecimalTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("DecimalTests")]
-    public sealed class MicrosoftSqlClientDecimalTests : DecimalTests<MicrosoftSqlClientProvider> { }
-#endif
-    public abstract class DecimalTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public sealed class MicrosoftSqlClientDecimalTests : DecimalTests<MicrosoftSqlClientProvider>
     {
+        public MicrosoftSqlClientDecimalTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
+#endif
+    public abstract class DecimalTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
+    {
+        protected DecimalTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void Issue261_Decimals()
         {

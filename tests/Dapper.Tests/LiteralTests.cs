@@ -4,13 +4,21 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("LiteralTests")]
-    public sealed class SystemSqlClientLiteralTests : LiteralTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientLiteralTests : LiteralTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientLiteralTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("LiteralTests")]
-    public sealed class MicrosoftSqlClientLiteralTests : LiteralTests<MicrosoftSqlClientProvider> { }
-#endif
-    public abstract class LiteralTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public sealed class MicrosoftSqlClientLiteralTests : LiteralTests<MicrosoftSqlClientProvider>
     {
+        public MicrosoftSqlClientLiteralTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
+#endif
+    public abstract class LiteralTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
+    {
+        protected LiteralTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void LiteralReplacementEnumAndString()
         {

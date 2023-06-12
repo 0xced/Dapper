@@ -4,13 +4,21 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("TupleTests")]
-    public sealed class SystemSqlClientTupleTests : TupleTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientTupleTests : TupleTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientTupleTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("TupleTests")]
-    public sealed class MicrosoftSqlClientTupleTests : TupleTests<MicrosoftSqlClientProvider> { }
-#endif
-    public abstract class TupleTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public sealed class MicrosoftSqlClientTupleTests : TupleTests<MicrosoftSqlClientProvider>
     {
+        public MicrosoftSqlClientTupleTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
+#endif
+    public abstract class TupleTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
+    {
+        protected TupleTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void TupleStructParameter_Fails_HelpfulMessage()
         {
@@ -48,14 +56,14 @@ namespace Dapper.Tests
             Assert.Equal(42, val.Value.id);
             Assert.Equal("Fred", val.Value.name);
         }
-        
+
         [Fact]
         public void TupleReturnValue_NullableTuple_Works_When_Null()
         {
             var val = connection.QuerySingleOrDefault<(int id, string name)?>("select 42, 'Fred', 123 where 1 = 2");
             Assert.Null(val);
         }
-        
+
         [Fact]
         public void TupleReturnValue_TooFewColumns_Unmapped()
         {
@@ -91,7 +99,7 @@ namespace Dapper.Tests
             Assert.Equal(7, val.e7);
             Assert.Equal(8, val.e8);
         }
-        
+
         [Fact]
         public void Nullable_TupleReturnValue_Works_With8Elements()
         {
@@ -110,7 +118,7 @@ namespace Dapper.Tests
             Assert.Equal(7, val.Value.e7);
             Assert.Equal(8, val.Value.e8);
         }
-        
+
         [Fact]
         public void Nullable_TupleReturnValue_Works_With8Elements_When_Null()
         {
@@ -121,7 +129,7 @@ namespace Dapper.Tests
 
             Assert.Null(val);
         }
-        
+
         [Fact]
         public void TupleReturnValue_Works_With15Elements()
         {
@@ -147,7 +155,7 @@ namespace Dapper.Tests
             Assert.Equal(15, val.e15);
         }
 
-        
+
         [Fact]
         public void Nullable_TupleReturnValue_Works_With15Elements()
         {
@@ -155,7 +163,7 @@ namespace Dapper.Tests
 
             var val = connection.QuerySingle<(int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9, int e10, int e11, int e12, int e13, int e14, int e15)?>(
                 "select 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15");
-            
+
             Assert.NotNull(val);
             Assert.Equal(1, val.Value.e1);
             Assert.Equal(2, val.Value.e2);
@@ -173,7 +181,7 @@ namespace Dapper.Tests
             Assert.Equal(14, val.Value.e14);
             Assert.Equal(15, val.Value.e15);
         }
-        
+
         [Fact]
         public void Nullable_TupleReturnValue_Works_With15Elements_When_Null()
         {
@@ -181,7 +189,7 @@ namespace Dapper.Tests
 
             var val = connection.QuerySingleOrDefault<(int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9, int e10, int e11, int e12, int e13, int e14, int e15)?>(
                 "select 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 where 1 = 2");
-            
+
             Assert.Null(val);
         }
 

@@ -3,14 +3,22 @@ using System.Linq;
 namespace Dapper.Tests
 {
     [Collection(NonParallelDefinition.Name)]
-    public sealed class SystemSqlClientNullTests : NullTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientNullTests : NullTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientNullTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection(NonParallelDefinition.Name)]
-    public sealed class MicrosoftSqlClientNullTests : NullTests<MicrosoftSqlClientProvider> { }
+    public sealed class MicrosoftSqlClientNullTests : NullTests<MicrosoftSqlClientProvider>
+    {
+        public MicrosoftSqlClientNullTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
 #endif
 
-    public abstract class NullTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public abstract class NullTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
     {
+        protected NullTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void TestNullableDefault()
         {

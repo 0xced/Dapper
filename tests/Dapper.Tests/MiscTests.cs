@@ -22,13 +22,21 @@ namespace System.Runtime.CompilerServices
 namespace Dapper.Tests
 {
     [Collection("MiscTests")]
-    public sealed class SystemSqlClientMiscTests : MiscTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientMiscTests : MiscTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientMiscTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("MiscTests")]
-    public sealed class MicrosoftSqlClientMiscTests : MiscTests<MicrosoftSqlClientProvider> { }
-#endif
-    public abstract class MiscTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public sealed class MicrosoftSqlClientMiscTests : MiscTests<MicrosoftSqlClientProvider>
     {
+        public MicrosoftSqlClientMiscTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
+#endif
+    public abstract class MiscTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
+    {
+        protected MiscTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void TestNullableGuidSupport()
         {
@@ -317,7 +325,7 @@ WHERE (first_name LIKE {0} OR last_name LIKE {0});";
             const string use_end_only = "CONCAT(@search_term, '%')";
             const string use_both = "CONCAT('%', @search_term, '%')";
 
-            // if true, slower query due to not being able to use indices, but will allow searching inside strings 
+            // if true, slower query due to not being able to use indices, but will allow searching inside strings
             const bool allow_start_wildcards = false;
 
             string query = string.Format(formatted, allow_start_wildcards ? use_both : use_end_only);
@@ -658,7 +666,7 @@ select * from @bar", new { foo }).Single();
         [Fact]
         public void TestDbStringToString()
         {
-            Assert.Equal("Dapper.DbString (Value: 'abcde', Length: 10, IsAnsi: True, IsFixedLength: True)", 
+            Assert.Equal("Dapper.DbString (Value: 'abcde', Length: 10, IsAnsi: True, IsFixedLength: True)",
                 new DbString { Value = "abcde", IsFixedLength = true, Length = 10, IsAnsi = true }.ToString());
             Assert.Equal("Dapper.DbString (Value: 'abcde', Length: 10, IsAnsi: False, IsFixedLength: True)",
                 new DbString { Value = "abcde", IsFixedLength = true, Length = 10, IsAnsi = false }.ToString());

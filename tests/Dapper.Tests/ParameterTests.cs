@@ -20,12 +20,18 @@ using Microsoft.SqlServer.Types;
 namespace Dapper.Tests
 {
     [Collection(NonParallelDefinition.Name)] // because it creates SQL types that compete between the two providers
-    public sealed class SystemSqlClientParameterTests : ParameterTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientParameterTests : ParameterTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientParameterTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection(NonParallelDefinition.Name)] // because it creates SQL types that compete between the two providers
-    public sealed class MicrosoftSqlClientParameterTests : ParameterTests<MicrosoftSqlClientProvider> { }
+    public sealed class MicrosoftSqlClientParameterTests : ParameterTests<MicrosoftSqlClientProvider>
+    {
+        public MicrosoftSqlClientParameterTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
 #endif
-    public abstract class ParameterTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public abstract class ParameterTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
     {
         public class DbDynamicParams : SqlMapper.IDynamicParameters, IEnumerable<IDbDataParameter>
         {
@@ -43,7 +49,7 @@ namespace Dapper.Tests
                     command.Parameters.Add(parameter);
             }
         }
-        
+
         public class DbCustomParam : SqlMapper.ICustomQueryParameter
         {
             private readonly IDbDataParameter _sqlParameter;
@@ -58,6 +64,8 @@ namespace Dapper.Tests
                 command.Parameters.Add(_sqlParameter);
             }
         }
+
+        protected ParameterTests(TProvider provider) : base(provider) { }
 
         private static IEnumerable<IDataRecord> CreateSqlDataRecordList(IDbCommand command, IEnumerable<int> numbers)
         {
@@ -168,11 +176,11 @@ namespace Dapper.Tests
         }
 
         /* TODO:
-         * 
+         *
         public void TestMagicParam()
         {
             // magic params allow you to pass in single params without using an anon class
-            // this test fails for now, but I would like to support a single param by parsing the sql with regex and remapping. 
+            // this test fails for now, but I would like to support a single param by parsing the sql with regex and remapping.
 
             var first = connection.Query("select @a as a", 1).First();
             Assert.Equal(first.a, 1);
@@ -338,7 +346,7 @@ namespace Dapper.Tests
             }
         }
 
-        // SQL Server specific test to demonstrate TVP 
+        // SQL Server specific test to demonstrate TVP
         [Fact]
         public void TestTVP()
         {
@@ -827,7 +835,7 @@ namespace Dapper.Tests
             Assert.Equal(123, foo);
             Assert.Equal("abc", bar);
         }
-        
+
         [Fact]
         public void TestDynamicParametersReuse()
         {
@@ -843,7 +851,7 @@ namespace Dapper.Tests
             Assert.Equal("abc", result2.Bar);
         }
 
-        
+
         [Fact]
         public void TestCustomParameter()
         {
@@ -857,7 +865,7 @@ namespace Dapper.Tests
             Assert.Equal(123, foo);
             Assert.Equal("abc", bar);
         }
-        
+
         [Fact]
         public void TestCustomParameterReuse()
         {
@@ -872,8 +880,8 @@ namespace Dapper.Tests
             Assert.Equal(123, result2.Foo);
             Assert.Equal("abc", result2.Bar);
         }
-        
-        
+
+
         [Fact]
         public void TestDynamicParamNullSupport()
         {
@@ -1692,7 +1700,7 @@ create table #Issue1907 (
             {
                 if (close) connection.Close();
             }
-            
+
         }
         class HazSqlDecimal
         {

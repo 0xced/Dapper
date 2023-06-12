@@ -6,15 +6,21 @@ using Xunit;
 
 namespace Dapper.Tests.Providers
 {
-    public sealed class SystemSqlClientEntityFrameworkTests : EntityFrameworkTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientEntityFrameworkTests : EntityFrameworkTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientEntityFrameworkTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
-    public sealed class MicrosoftSqlClientEntityFrameworkTests : EntityFrameworkTests<MicrosoftSqlClientProvider> { }
+    public sealed class MicrosoftSqlClientEntityFrameworkTests : EntityFrameworkTests<MicrosoftSqlClientProvider>
+    {
+        public MicrosoftSqlClientEntityFrameworkTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
 #endif
 
     [Collection("TypeHandlerTests")]
-    public abstract class EntityFrameworkTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public abstract class EntityFrameworkTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
     {
-        public EntityFrameworkTests()
+        protected EntityFrameworkTests(TProvider provider) : base(provider)
         {
             EntityFramework.Handlers.Register();
         }

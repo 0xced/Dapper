@@ -8,14 +8,17 @@ using Xunit;
 
 namespace Dapper.Tests
 {
-    public class SqliteProvider : DatabaseProvider
+    public class SqliteProvider : DatabaseProvider, IDisposable
     {
         public override DbProviderFactory Factory => SqliteFactory.Instance;
         public override string GetConnectionString() => "Data Source=:memory:";
+        public void Dispose() { }
     }
 
     public abstract class SqliteTypeTestBase : TestBase<SqliteProvider>
     {
+        protected SqliteTypeTestBase(SqliteProvider provider) : base(provider) { }
+
         protected SqliteConnection GetSQLiteConnection(bool open = true)
              => (SqliteConnection)(open ? Provider.GetOpenConnection() : Provider.GetClosedConnection());
 
@@ -34,7 +37,8 @@ namespace Dapper.Tests
             {
                 try
                 {
-                    using (DatabaseProvider<SqliteProvider>.Instance.GetOpenConnection())
+                    using (var provider = new SqliteProvider())
+                    using (provider.GetOpenConnection())
                     {
                     }
                 }
@@ -49,6 +53,8 @@ namespace Dapper.Tests
     [Collection(NonParallelDefinition.Name)]
     public class SqliteTypeHandlerTests : SqliteTypeTestBase
     {
+        public SqliteTypeHandlerTests(SqliteProvider provider) : base(provider) { }
+
         [FactSqlite]
         public void Issue466_SqliteHatesOptimizations()
         {
@@ -89,7 +95,9 @@ namespace Dapper.Tests
     }
 
     public class SqliteTests : SqliteTypeTestBase
-    { 
+    {
+        public SqliteTests(SqliteProvider provider) : base(provider) { }
+
         [FactSqlite]
         public void DapperEnumValue_Sqlite()
         {
@@ -99,7 +107,7 @@ namespace Dapper.Tests
             }
         }
 
-        
+
 
         [FactSqlite]
         public void Isse467_SqliteLikesParametersWithPrefix()
@@ -139,7 +147,7 @@ namespace Dapper.Tests
             {
                 connection.Execute("INSERT INTO [PersonWithDob] ([DoB]) VALUES (@DoB)", new PersonWithDob { DoB = localMorning });
 
-                // Before we read the column, use Farsi this is a way to ensure the 
+                // Before we read the column, use Farsi this is a way to ensure the
                 // InvariantCulture is used as otherwise it would fail because Farsi
                 // is not able to parse a DateTime that is formatted with Invariant
 

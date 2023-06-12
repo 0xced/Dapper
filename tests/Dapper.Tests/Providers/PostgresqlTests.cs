@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using Testcontainers.PostgreSql;
 using Xunit;
 
 namespace Dapper.Tests
 {
-    public class PostgresProvider : DatabaseProvider
+    public class PostgresProvider : ContainerDatabaseProvider<PostgreSqlBuilder, PostgreSqlContainer>
     {
         public override DbProviderFactory Factory => Npgsql.NpgsqlFactory.Instance;
-        public override string GetConnectionString() =>
-            GetConnectionString("PostgesConnectionString", "Server=localhost;Port=5432;User Id=dappertest;Password=dapperpass;Database=dappertest");
+        protected override string ProviderName => "Postgresql";
     }
-    public class PostgresqlTests : TestBase<PostgresProvider>
+    public class PostgresqlTests : TestBase<PostgresProvider>, IClassFixture<PostgresProvider>
     {
+        public PostgresqlTests(PostgresProvider provider) : base(provider) { }
+
         private Npgsql.NpgsqlConnection GetOpenNpgsqlConnection() => (Npgsql.NpgsqlConnection)Provider.GetOpenConnection();
 
         private class Cat
@@ -38,7 +40,7 @@ namespace Dapper.Tests
             new Cat() { Breed = "Persian", Name="MAGNA"}
         };
 
-        [FactPostgresql]
+        [Fact]
         public void TestPostgresqlArrayParameters()
         {
             using (var conn = GetOpenNpgsqlConnection())
@@ -56,7 +58,7 @@ namespace Dapper.Tests
             }
         }
 
-        [FactPostgresql]
+        [Fact]
         public void TestPostgresqlListParameters()
         {
             using (var conn = GetOpenNpgsqlConnection())
@@ -80,7 +82,7 @@ namespace Dapper.Tests
             public char CharColumn { get; set; }
         }
 
-        [FactPostgresql]
+        [Fact]
         public void TestPostgresqlChar()
         {
             using (var conn = GetOpenNpgsqlConnection())
@@ -96,7 +98,7 @@ namespace Dapper.Tests
             }
         }
 
-        [FactPostgresql]
+        [Fact]
         public void TestPostgresqlSelectArray()
         {
             using (var conn = GetOpenNpgsqlConnection())
@@ -107,7 +109,7 @@ namespace Dapper.Tests
             }
         }
 
-        [FactPostgresql]
+        [Fact]
         public void TestPostgresqlDateTimeUsage()
         {
             using (var conn = GetOpenNpgsqlConnection())
@@ -115,30 +117,6 @@ namespace Dapper.Tests
                 DateTime now = DateTime.UtcNow;
                 DateTime? nilA = now, nilB = null;
                 _ = conn.ExecuteScalar("SELECT @now, @nilA, @nilB::timestamp", new { now, nilA, nilB });
-            }
-        }
-
-        [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-        public class FactPostgresqlAttribute : FactAttribute
-        {
-            public override string Skip
-            {
-                get { return unavailable ?? base.Skip; }
-                set { base.Skip = value; }
-            }
-
-            private static readonly string unavailable;
-
-            static FactPostgresqlAttribute()
-            {
-                try
-                {
-                    using (DatabaseProvider<PostgresProvider>.Instance.GetOpenConnection()) { /* just trying to see if it works */ }
-                }
-                catch (Exception ex)
-                {
-                    unavailable = $"Postgresql is unavailable: {ex.Message}";
-                }
             }
         }
     }

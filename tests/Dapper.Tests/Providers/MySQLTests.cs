@@ -3,33 +3,35 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using MySqlConnector;
+using Testcontainers.MySql;
 using Xunit;
 
 namespace Dapper.Tests
 {
-    public sealed class MySqlProvider : DatabaseProvider
+    public sealed class MySqlProvider : ContainerDatabaseProvider<MySqlBuilder, MySqlContainer>
     {
-        public override DbProviderFactory Factory => MySqlConnector.MySqlConnectorFactory.Instance;
-        public override string GetConnectionString() =>
-            GetConnectionString("MySqlConnectionString", "Server=localhost;Database=tests;Uid=test;Pwd=pass;");
+        public override DbProviderFactory Factory => MySqlConnectorFactory.Instance;
+        protected override string ProviderName => "MySql";
 
         public DbConnection GetMySqlConnection(bool open = true,
             bool convertZeroDatetime = false, bool allowZeroDatetime = false)
         {
-            string cs = GetConnectionString();
-            var csb = Factory.CreateConnectionStringBuilder();
-            csb.ConnectionString = cs;
-            ((dynamic)csb).AllowZeroDateTime = allowZeroDatetime;
-            ((dynamic)csb).ConvertZeroDateTime = convertZeroDatetime;
-            var conn = Factory.CreateConnection();
-            conn.ConnectionString = csb.ConnectionString;
+            var csb = new MySqlConnectionStringBuilder(GetConnectionString())
+            {
+                AllowZeroDateTime = allowZeroDatetime,
+                ConvertZeroDateTime = convertZeroDatetime,
+            };
+            var conn = new MySqlConnection(csb.ConnectionString);
             if (open) conn.Open();
             return conn;
         }
     }
-    public class MySQLTests : TestBase<MySqlProvider>
-    {      
-        [FactMySql]
+    public class MySQLTests : TestBase<MySqlProvider>, IClassFixture<MySqlProvider>
+    {
+        public MySQLTests(MySqlProvider provider) : base(provider) { }
+
+        [Fact]
         public void DapperEnumValue_Mysql()
         {
             using (var conn = Provider.GetMySqlConnection())
@@ -38,7 +40,7 @@ namespace Dapper.Tests
             }
         }
 
-        [FactMySql(Skip = "See https://github.com/DapperLib/Dapper/issues/552, not resolved on the MySQL end.")]
+        [Fact(Skip = "See https://github.com/DapperLib/Dapper/issues/552, not resolved on the MySQL end.")]
         public void Issue552_SignedUnsignedBooleans()
         {
             using (var conn = Provider.GetMySqlConnection(true, false, false))
@@ -78,7 +80,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS `bar` (
             public bool? Bool_Val { get; set; }
         }
 
-        [FactMySql]
+        [Fact]
         public void Issue295_NullableDateTime_MySql_Default()
         {
             using (var conn = Provider.GetMySqlConnection(true, false, false))
@@ -87,7 +89,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS `bar` (
             }
         }
 
-        [FactMySql]
+        [Fact]
         public void Issue295_NullableDateTime_MySql_ConvertZeroDatetime()
         {
             using (var conn = Provider.GetMySqlConnection(true, true, false))
@@ -96,7 +98,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS `bar` (
             }
         }
 
-        [FactMySql(Skip = "See https://github.com/DapperLib/Dapper/issues/295, AllowZeroDateTime=True is not supported")]
+        [Fact]
         public void Issue295_NullableDateTime_MySql_AllowZeroDatetime()
         {
             using (var conn = Provider.GetMySqlConnection(true, false, true))
@@ -105,7 +107,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS `bar` (
             }
         }
 
-        [FactMySql(Skip = "See https://github.com/DapperLib/Dapper/issues/295, AllowZeroDateTime=True is not supported")]
+        [Fact]
         public void Issue295_NullableDateTime_MySql_ConvertAllowZeroDatetime()
         {
             using (var conn = Provider.GetMySqlConnection(true, true, true))
@@ -114,7 +116,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS `bar` (
             }
         }
 
-        [FactMySql]
+        [Fact]
         public void Issue426_SO34439033_DateTimeGainsTicks()
         {
             using (var conn = Provider.GetMySqlConnection(true, true, true))
@@ -137,7 +139,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS `bar` (
             }
         }
 
-        [FactMySql]
+        [Fact]
         public void SO36303462_Tinyint_Bools()
         {
             using (var conn = Provider.GetMySqlConnection(true, true, true))
@@ -156,7 +158,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS `bar` (
             }
         }
 
-        [FactMySql]
+        [Fact]
         public void Issue1277_ReaderSync()
         {
             using (var conn = Provider.GetMySqlConnection())
@@ -179,7 +181,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS `bar` (
             }
         }
 
-        [FactMySql]
+        [Fact]
         public async Task Issue1277_ReaderAsync()
         {
             using (var conn = Provider.GetMySqlConnection())
@@ -212,30 +214,6 @@ CREATE TEMPORARY TABLE IF NOT EXISTS `bar` (
         {
             public long Id { get; set; }
             public TimeSpan? Time { get; set; }
-        }
-
-        [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-        public class FactMySqlAttribute : FactAttribute
-        {
-            public override string Skip
-            {
-                get { return unavailable ?? base.Skip; }
-                set { base.Skip = value; }
-            }
-
-            private static readonly string unavailable;
-
-            static FactMySqlAttribute()
-            {
-                try
-                {
-                    using (DatabaseProvider<MySqlProvider>.Instance.GetMySqlConnection(true)) { /* just trying to see if it works */ }
-                }
-                catch (Exception ex)
-                {
-                    unavailable = $"MySql is unavailable: {ex.Message}";
-                }
-            }
         }
     }
 }

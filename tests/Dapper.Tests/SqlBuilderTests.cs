@@ -5,13 +5,21 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("SqlBuilderTests")]
-    public sealed class SystemSqlClientSqlBuilderTests : SqlBuilderTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientSqlBuilderTests : SqlBuilderTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientSqlBuilderTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("SqlBuilderTests")]
-    public sealed class MicrosoftSqlClientSqlBuilderTests : SqlBuilderTests<MicrosoftSqlClientProvider> { }
-#endif
-    public abstract class SqlBuilderTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public sealed class MicrosoftSqlClientSqlBuilderTests : SqlBuilderTests<MicrosoftSqlClientProvider>
     {
+        public MicrosoftSqlClientSqlBuilderTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
+#endif
+    public abstract class SqlBuilderTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
+    {
+        protected SqlBuilderTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void TestSqlBuilderWithDapperQuery()
         {

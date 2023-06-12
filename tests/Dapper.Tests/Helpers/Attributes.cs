@@ -59,7 +59,8 @@ namespace Dapper.Tests
         public static readonly int DetectedLevel;
         static FactRequiredCompatibilityLevelAttribute()
         {
-            using (var conn = DatabaseProvider<SystemSqlClientProvider>.Instance.GetOpenConnection())
+            using (var provider = new SystemSqlClientProvider())
+            using (var conn = provider.GetOpenConnection())
             {
                 try
                 {
@@ -84,7 +85,8 @@ namespace Dapper.Tests
         public static readonly bool IsCaseSensitive;
         static FactUnlessCaseSensitiveDatabaseAttribute()
         {
-            using (var conn = DatabaseProvider<SystemSqlClientProvider>.Instance.GetOpenConnection())
+            using (var provider = new SystemSqlClientProvider())
+            using (var conn = provider.GetOpenConnection())
             {
                 try
                 {

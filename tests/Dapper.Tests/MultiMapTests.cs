@@ -7,13 +7,21 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("MultiMapTests")]
-    public sealed class SystemSqlClientMultiMapTests : MultiMapTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientMultiMapTests : MultiMapTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientMultiMapTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("MultiMapTests")]
-    public sealed class MicrosoftSqlClientMultiMapTests : MultiMapTests<MicrosoftSqlClientProvider> { }
-#endif
-    public abstract class MultiMapTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public sealed class MicrosoftSqlClientMultiMapTests : MultiMapTests<MicrosoftSqlClientProvider>
     {
+        public MicrosoftSqlClientMultiMapTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
+#endif
+    public abstract class MultiMapTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
+    {
+        protected MultiMapTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void ParentChildIdentityAssociations()
         {
@@ -655,7 +663,7 @@ Order by p.Id
             }
             catch (ArgumentException)
             {
-                // expecting an app exception due to multi mapping being bodged 
+                // expecting an app exception due to multi mapping being bodged
             }
 
             try
@@ -664,7 +672,7 @@ Order by p.Id
             }
             catch (ArgumentException)
             {
-                // expecting an app exception due to multi mapping being bodged 
+                // expecting an app exception due to multi mapping being bodged
             }
         }
     }

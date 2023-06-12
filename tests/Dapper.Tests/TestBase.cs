@@ -3,22 +3,16 @@ using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.Threading;
-using Xunit;
 
 namespace Dapper.Tests
 {
-    public static class DatabaseProvider<TProvider> where TProvider : DatabaseProvider
-    {
-        public static TProvider Instance { get; } = Activator.CreateInstance<TProvider>();
-    }
     public abstract class DatabaseProvider
     {
         public abstract DbProviderFactory Factory { get; }
 
-        public virtual void Dispose() { }
         public abstract string GetConnectionString();
 
-        protected static string GetConnectionString(string name, string defaultConnectionString) =>
+        protected string GetConnectionString(string name, string defaultConnectionString) =>
             Environment.GetEnvironmentVariable(name) ?? defaultConnectionString;
 
         public DbConnection GetOpenConnection()
@@ -47,9 +41,9 @@ namespace Dapper.Tests
         }
     }
 
-    public abstract class SqlServerDatabaseProvider : DatabaseProvider
+    public abstract class SqlServerDatabaseProvider : DatabaseProvider, IDisposable
     {
-        public override string GetConnectionString() => 
+        public override string GetConnectionString() =>
             GetConnectionString("SqlServerConnectionString", "Data Source=.;Initial Catalog=tempdb;Integrated Security=True");
 
         public DbConnection GetOpenConnection(bool mars)
@@ -65,6 +59,8 @@ namespace Dapper.Tests
             if (conn.State != ConnectionState.Open) throw new InvalidOperationException("should be open!");
             return conn;
         }
+
+        public void Dispose() { }
     }
     public sealed class SystemSqlClientProvider : SqlServerDatabaseProvider
     {
@@ -77,8 +73,13 @@ namespace Dapper.Tests
     }
 #endif
 
-    public abstract class TestBase<TProvider> : IDisposable where TProvider : DatabaseProvider
+    public abstract class TestBase<TProvider> : IDisposable where TProvider : DatabaseProvider, new()
     {
+        public TestBase(TProvider provider)
+        {
+            Provider = provider;
+        }
+
         protected void SkipIfMsDataClient()
             => Skip.If<Microsoft.Data.SqlClient.SqlConnection>(connection);
 
@@ -87,7 +88,7 @@ namespace Dapper.Tests
         protected DbConnection _connection;
         protected DbConnection connection => _connection ??= Provider.GetOpenConnection();
 
-        public TProvider Provider { get; } = DatabaseProvider<TProvider>.Instance;
+        public TProvider Provider { get; }
 
         protected static CultureInfo ActiveCulture
         {
@@ -98,10 +99,6 @@ namespace Dapper.Tests
         static TestBase()
         {
             Console.WriteLine("Dapper: " + typeof(SqlMapper).AssemblyQualifiedName);
-            var provider = DatabaseProvider<TProvider>.Instance;
-            Console.WriteLine("Using Connectionstring: {0}", provider.GetConnectionString());
-            var factory = provider.Factory;
-            Console.WriteLine("Using Provider: {0}", factory.GetType().FullName);
             Console.WriteLine(".NET: " + Environment.Version);
             Console.Write("Loading native assemblies for SQL types...");
             try
@@ -120,7 +117,6 @@ namespace Dapper.Tests
         {
             _connection?.Dispose();
             _connection = null;
-            Provider?.Dispose();
         }
     }
 

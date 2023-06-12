@@ -6,14 +6,22 @@ using Xunit;
 namespace Dapper.Tests
 {
     [Collection("DataReaderTests")]
-    public sealed class SystemSqlClientDataReaderTests : DataReaderTests<SystemSqlClientProvider> { }
+    public sealed class SystemSqlClientDataReaderTests : DataReaderTests<SystemSqlClientProvider>
+    {
+        public SystemSqlClientDataReaderTests(SystemSqlClientProvider provider) : base(provider) { }
+    }
 #if MSSQLCLIENT
     [Collection("DataReaderTests")]
-    public sealed class MicrosoftSqlClientDataReaderTests : DataReaderTests<MicrosoftSqlClientProvider> { }
+    public sealed class MicrosoftSqlClientDataReaderTests : DataReaderTests<MicrosoftSqlClientProvider>
+    {
+        public MicrosoftSqlClientDataReaderTests(MicrosoftSqlClientProvider provider) : base(provider) { }
+    }
 #endif
 
-    public abstract class DataReaderTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider
+    public abstract class DataReaderTests<TProvider> : TestBase<TProvider> where TProvider : DatabaseProvider, new()
     {
+        protected DataReaderTests(TProvider provider) : base(provider) { }
+
         [Fact]
         public void GetSameReaderForSameShape_IDataReader()
         {
